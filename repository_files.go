@@ -19,6 +19,7 @@ package gitlab
 import (
 	"bytes"
 	"fmt"
+	"net/http"
 	"net/url"
 )
 
@@ -56,6 +57,11 @@ type GetFileOptions struct {
 	Ref *string `url:"ref,omitempty" json:"ref,omitempty"`
 }
 
+type GetFileOptionsV3 struct {
+	Ref      *string `url:"ref,omitempty" json:"ref,omitempty"`
+	FilePath *string `url:"file_path,omitempty" json:"file_path,omitempty"`
+}
+
 // GetFile allows you to receive information about a file in repository like
 // name, size, content. Note that file content is Base64 encoded.
 //
@@ -66,12 +72,32 @@ func (s *RepositoryFilesService) GetFile(pid interface{}, fileName string, opt *
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/repository/files/%s", url.QueryEscape(project), url.QueryEscape(fileName))
+	var u string
+	var req *http.Request
 
-	req, err := s.client.NewRequest("GET", u, opt, options)
-	if err != nil {
-		return nil, nil, err
+	switch s.client.APIVersion() {
+	case APIVersionV3:
+		u = fmt.Sprintf("projects/%s/repository/files", url.QueryEscape(project))
+		optV3 := &GetFileOptionsV3{
+			Ref:      opt.Ref,
+			FilePath: &fileName,
+		}
+		req, err = s.client.NewRequest("GET", u, optV3, options)
+		if err != nil {
+			return nil, nil, err
+		}
+	case APIVersionV4:
+		u = fmt.Sprintf("projects/%s/repository/files/%s", url.QueryEscape(project), url.QueryEscape(fileName))
+		req, err = s.client.NewRequest("GET", u, opt, options)
+		if err != nil {
+			return nil, nil, err
+		}
+	default:
+		return nil, nil, fmt.Errorf("apiversion=%s", s.client.APIVersion())
 	}
+
+	// data, _ := httputil.DumpRequest(req, false)
+	// fmt.Println(string(data))
 
 	f := new(File)
 	resp, err := s.client.Do(req, f)

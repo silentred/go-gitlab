@@ -39,6 +39,9 @@ const (
 	defaultBaseURL = "https://gitlab.com/"
 	apiVersionPath = "api/v4/"
 	userAgent      = "go-gitlab"
+
+	APIVersionV3 = "v3"
+	APIVersionV4 = "v4"
 )
 
 // authType represents an authentication type within GitLab.
@@ -258,7 +261,8 @@ type Client struct {
 	// Base URL for API requests. Defaults to the public GitLab API, but can be
 	// set to a domain endpoint to use with a self hosted GitLab server. baseURL
 	// should always be specified with a trailing slash.
-	baseURL *url.URL
+	baseURL    *url.URL
+	apiVersion string
 
 	// Token type used to make authenticated API calls.
 	authType authType
@@ -493,7 +497,7 @@ func (c *Client) SetBaseURL(urlStr string) error {
 		return err
 	}
 
-	if !strings.HasSuffix(baseURL.Path, apiVersionPath) {
+	if !strings.Contains(baseURL.Path, "api") {
 		baseURL.Path += apiVersionPath
 	}
 
@@ -501,6 +505,18 @@ func (c *Client) SetBaseURL(urlStr string) error {
 	c.baseURL = baseURL
 
 	return nil
+}
+
+func (c *Client) APIVersion() string {
+	if strings.Contains(c.BaseURL().String(), APIVersionV3) {
+		return APIVersionV3
+	}
+
+	if strings.Contains(c.BaseURL().String(), APIVersionV4) {
+		return APIVersionV4
+	}
+
+	return "unkown"
 }
 
 // NewRequest creates an API request. A relative URL path can be provided in

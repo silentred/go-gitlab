@@ -9,6 +9,10 @@ A GitLab API client enabling Go programs to interact with GitLab in a simple and
 [![Go Report Card](https://goreportcard.com/badge/github.com/xanzy/go-gitlab)](https://goreportcard.com/report/github.com/xanzy/go-gitlab)
 [![GitHub issues](https://img.shields.io/github/issues/xanzy/go-gitlab.svg)](https://github.com/xanzy/go-gitlab/issues)
 
+## CHANGES
+
+- [x] Partialy support gitlab APIV3: repo-files
+
 ## NOTE
 
 Release v0.6.0 (released on 25-08-2017) no longer supports the older V3 Gitlab API. If
